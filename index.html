@@ -1,0 +1,1785 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Negocio de Agentes de IA — Tutorial Interactivo</title>
+<style>
+/* ============================================================
+   VARIABLES Y BASE
+   ============================================================ */
+:root{
+  --bg:#0a0e1a;
+  --card:#0f172a;
+  --card2:#111c33;
+  --accent:#1e3a5f;
+  --accentFg:#e2e8f0;
+  --text:#e2e8f0;
+  --muted:#94a3b8;
+  --border:#1e293b;
+  --link:#60a5fa;
+  --ok:#22c55e;
+  --warn:#f59e0b;
+  --err:#ef4444;
+}
+body.light{
+  --bg:#eef2f7;
+  --card:#ffffff;
+  --card2:#f8fafc;
+  --accent:#dbeafe;
+  --accentFg:#0f172a;
+  --text:#0f172a;
+  --muted:#475569;
+  --border:#cbd5e1;
+  --link:#1d4ed8;
+}
+*{box-sizing:border-box}
+html{font-size:16px}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  line-height:1.65;
+  -webkit-text-size-adjust:100%;
+  transition:background .25s ease,color .25s ease;
+}
+img{max-width:100%}
+a{color:var(--link)}
+
+/* ============================================================
+   BARRA DE PROGRESO DE LECTURA
+   ============================================================ */
+.progress-bar{
+  position:fixed;top:0;left:0;height:3px;width:0;
+  background:linear-gradient(90deg,#2563eb,#22d3ee);
+  z-index:120;transition:width .1s linear;
+}
+
+/* ============================================================
+   TOOLBAR
+   ============================================================ */
+.toolbar{
+  position:sticky;top:0;z-index:60;
+  background:var(--card);
+  border-bottom:1px solid var(--border);
+  padding:.5rem .7rem;
+  display:flex;flex-wrap:wrap;gap:.45rem;align-items:center;
+}
+.toolbar .brand{
+  font-weight:800;font-size:.8rem;letter-spacing:.5px;
+  color:var(--muted);margin-right:auto;white-space:nowrap;
+}
+.btn{
+  background:var(--bg);color:var(--text);
+  border:1px solid var(--border);border-radius:9px;
+  padding:.42rem .68rem;font-size:.82rem;font-weight:700;
+  cursor:pointer;line-height:1.2;white-space:nowrap;
+  transition:border-color .15s,background .15s;
+}
+.btn:hover{border-color:var(--link)}
+.btn:active{transform:translateY(1px)}
+.btn.active{background:#2563eb;color:#fff;border-color:#2563eb}
+.search-wrap{position:relative;flex:1 1 170px;min-width:140px}
+.search-wrap input{
+  width:100%;padding:.42rem .6rem;border-radius:9px;
+  border:1px solid var(--border);background:var(--bg);color:var(--text);
+  font-size:.85rem;font-family:inherit;
+}
+.search-wrap input:focus{outline:2px solid var(--link);outline-offset:1px}
+#searchCount{
+  font-size:.72rem;color:var(--muted);position:absolute;right:.5rem;top:50%;
+  transform:translateY(-50%);pointer-events:none;background:var(--bg);padding-left:.3rem;
+}
+
+/* ============================================================
+   PESTAÑAS
+   ============================================================ */
+.tabs{
+  display:flex;gap:.4rem;overflow-x:auto;padding:.6rem .7rem;
+  border-bottom:1px solid var(--border);background:var(--bg);
+  scrollbar-width:thin;
+}
+.tabs::-webkit-scrollbar{height:5px}
+.tabs::-webkit-scrollbar-thumb{background:var(--accent);border-radius:4px}
+.tab{
+  background:var(--card);color:var(--muted);
+  border:1px solid var(--border);border-radius:999px;
+  padding:.45rem .9rem;font-size:.78rem;font-weight:800;
+  letter-spacing:.5px;cursor:pointer;white-space:nowrap;
+  transition:all .18s ease;
+}
+.tab:hover{color:var(--text);border-color:var(--link)}
+.tab.active{
+  background:linear-gradient(135deg,#1e3a5f,#2563eb);
+  color:#fff;border-color:#2563eb;
+  box-shadow:0 0 0 2px rgba(37,99,235,.25);
+}
+body.light .tab.active{color:#fff}
+
+/* ============================================================
+   PANELES
+   ============================================================ */
+.panel{display:none;padding:1rem .8rem 4rem;max-width:900px;margin:0 auto}
+.panel.active{display:block;animation:fadeUp .32s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+h1,h2,h3,h4{line-height:1.25;margin:1.2rem 0 .5rem}
+h1{font-size:1.7rem}
+h2{font-size:1.3rem;border-left:4px solid #2563eb;padding-left:.6rem}
+h3{font-size:1.08rem;color:var(--text)}
+h4{font-size:.95rem;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+p{margin:.6rem 0}
+ul,ol{margin:.5rem 0 .8rem;padding-left:1.3rem}
+li{margin:.3rem 0}
+
+.hero-title{
+  font-size:2rem;font-weight:900;line-height:1.12;margin:.3rem 0 .4rem;
+  background:linear-gradient(90deg,#60a5fa,#22d3ee);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+}
+.hero-sub{color:var(--muted);font-size:.98rem;margin:0 0 .8rem}
+
+.hero-svg-mount{
+  width:100%;margin:.4rem 0 .3rem;
+  border:1px solid var(--border);border-radius:16px;
+  background:var(--card);overflow:hidden;
+}
+.hero-svg-mount svg{display:block;width:100%;height:auto}
+.hero-svg-mount img{display:block;width:100%;height:auto}
+.svg-caption{
+  font-size:.78rem;color:var(--muted);text-align:center;
+  margin:.35rem 0 1rem;line-height:1.45;
+}
+
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:14px;padding:.9rem 1rem;margin:0 0 1rem;
+}
+.card h3:first-child,.card h2:first-child,.card p:first-child{margin-top:0}
+.card.accent{background:var(--accent);color:var(--accentFg);border-color:transparent}
+.card.accent h3,.card.accent h2,.card.accent strong{color:var(--accentFg)}
+
+.note,.warn,.tip{
+  border-radius:12px;padding:.75rem .9rem;margin:.8rem 0;
+  font-size:.92rem;border-left:5px solid;
+}
+.note{background:var(--card2);border-color:#2563eb}
+.warn{background:var(--card2);border-color:var(--warn)}
+.tip{background:var(--card2);border-color:var(--ok)}
+
+.grid{display:grid;gap:.75rem;grid-template-columns:1fr}
+@media(min-width:620px){.grid.two{grid-template-columns:1fr 1fr}}
+
+.step{
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:12px;padding:.7rem .85rem;margin:.6rem 0;
+}
+.step .num{
+  display:inline-block;background:#2563eb;color:#fff;
+  font-weight:800;font-size:.75rem;border-radius:7px;
+  padding:.1rem .5rem;margin-right:.5rem;vertical-align:1px;
+}
+.step strong{display:inline}
+
+table{
+  width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.86rem;
+  display:block;overflow-x:auto;
+}
+th,td{border:1px solid var(--border);padding:.5rem .6rem;text-align:left;vertical-align:top}
+th{background:var(--accent);color:var(--accentFg);font-weight:800}
+tbody tr:nth-child(even){background:var(--card2)}
+
+pre{
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:10px;padding:.75rem .85rem;overflow-x:auto;
+  font-size:.78rem;line-height:1.55;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  white-space:pre-wrap;word-break:break-word;color:var(--text);
+  margin:0;
+}
+code{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:5px;padding:.05rem .3rem;font-size:.85em;
+}
+.copy-block{position:relative;margin:.8rem 0}
+.copyBtn{
+  display:inline-block;margin-bottom:.35rem;
+  background:var(--accent);color:var(--accentFg);
+  border:1px solid var(--border);border-radius:8px;
+  padding:.28rem .7rem;font-size:.7rem;font-weight:800;
+  letter-spacing:.6px;cursor:pointer;
+}
+.copyBtn:hover{border-color:var(--link)}
+.copyBtn.copied{background:var(--ok);color:#04140a;border-color:var(--ok)}
+
+details{
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:10px;padding:.6rem .8rem;margin:.6rem 0;
+}
+summary{cursor:pointer;font-weight:700;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"▸ ";color:var(--link);font-weight:900}
+details[open] summary::before{content:"▾ "}
+details[open] summary{margin-bottom:.5rem}
+
+.check-item{
+  display:flex;gap:.6rem;align-items:flex-start;
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:10px;padding:.6rem .75rem;margin:.45rem 0;
+  cursor:pointer;font-size:.9rem;
+}
+.check-item input{
+  width:1.15rem;height:1.15rem;margin-top:.15rem;flex:0 0 auto;
+  accent-color:#2563eb;cursor:pointer;
+}
+.check-item.done{opacity:.62}
+.check-item.done span{text-decoration:line-through}
+
+.badge{
+  display:inline-block;background:var(--accent);color:var(--accentFg);
+  border-radius:999px;padding:.15rem .65rem;font-size:.72rem;
+  font-weight:800;letter-spacing:.5px;margin-right:.35rem;
+}
+.badge.ok{background:var(--ok);color:#04140a}
+.badge.err{background:var(--err);color:#fff}
+
+.author-name{
+  font-size:2.3rem;font-weight:900;line-height:1.1;
+  margin:.2rem 0 .1rem;
+  background:linear-gradient(90deg,#60a5fa,#22d3ee);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+}
+.author-role{font-size:1rem;color:var(--muted);font-weight:700;margin:0 0 .3rem}
+.meta-line{font-size:.88rem;color:var(--muted);margin:.2rem 0}
+.meta-line strong{color:var(--text)}
+
+mark.search-hl{background:#fde047;color:#111;border-radius:3px;padding:0 .1em}
+
+.to-top{
+  position:fixed;right:1rem;bottom:1rem;z-index:70;
+  width:2.7rem;height:2.7rem;border-radius:50%;
+  background:#2563eb;color:#fff;border:none;font-size:1.2rem;
+  font-weight:900;cursor:pointer;display:none;
+  box-shadow:0 6px 18px rgba(0,0,0,.45);
+}
+.to-top.show{display:block}
+
+.print-notice{
+  position:fixed;left:50%;bottom:1rem;transform:translateX(-50%);
+  z-index:200;max-width:92vw;
+  background:#f59e0b;color:#1a1200;font-weight:700;font-size:.85rem;
+  padding:.7rem 1rem;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.4);
+}
+
+footer.foot{
+  text-align:center;color:var(--muted);font-size:.75rem;
+  padding:1.5rem 1rem 2.5rem;
+}
+
+/* ============================================================
+   IMPRESIÓN / PDF
+   ============================================================ */
+@page{ size: A4 portrait; margin: 14mm 12mm; }
+
+@media print{
+  html, body{
+    background:#fff !important;
+    color:#000 !important;
+    padding:0 !important;
+    margin:0 !important;
+    font-size:11pt !important;
+  }
+  .toolbar, .tabs, .to-top, .copyBtn, .progress-bar, nav, .print-notice{
+    display:none !important;
+  }
+  .panel{
+    display:block !important;
+    page-break-after:auto !important;
+    animation:none !important;
+    max-width:none !important;
+    padding:0 !important;
+    margin:0 0 10mm 0 !important;
+  }
+  .card, .step, .note, .warn, .tip, details, .check-item{
+    background:#fff !important;
+    border:1px solid #999 !important;
+    color:#000 !important;
+    box-shadow:none !important;
+    break-inside:avoid;
+  }
+  .card.accent{background:#eee !important;border:1px solid #999 !important}
+  .card.accent h3,.card.accent h2,.card.accent strong,.card.accent p{color:#000 !important}
+  h1,h2,h3,h4,p,li,td,th,span,div,strong,em,a,summary{color:#000 !important}
+  h2{border-left:4px solid #333 !important}
+  .hero-title,.author-name{
+    background:none !important;
+    -webkit-background-clip:border-box !important;
+    background-clip:border-box !important;
+    -webkit-text-fill-color:#000 !important;
+    color:#000 !important;
+  }
+  pre, table{
+    overflow:visible !important;
+    white-space:pre-wrap !important;
+    word-break:break-word !important;
+  }
+  pre{background:#f4f4f4 !important;border:1px solid #bbb !important;color:#000 !important}
+  code{background:#f4f4f4 !important;color:#000 !important;border:1px solid #ccc !important}
+  th{background:#dcdcdc !important;color:#000 !important}
+  tbody tr:nth-child(even){background:#f7f7f7 !important}
+  .badge{background:#ddd !important;color:#000 !important;border:1px solid #999 !important}
+  mark.search-hl{background:transparent !important;color:#000 !important}
+  a{text-decoration:underline !important}
+  .hero-svg-mount{display:block !important;border:1px solid #999 !important;background:#fff !important}
+  .svg-caption{color:#333 !important}
+  details{page-break-inside:avoid}
+  details > summary{display:block !important}
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- ================= TOOLBAR ================= -->
+<header class="toolbar">
+  <span class="brand">TUTORIAL IA · V001</span>
+  <div class="search-wrap">
+    <input type="search" id="searchInput" placeholder="Buscar en el tutorial…" aria-label="Buscar en el tutorial">
+    <span id="searchCount"></span>
+  </div>
+  <button class="btn" type="button" id="btnFontDown" title="Reducir tamaño de texto">A−</button>
+  <button class="btn" type="button" id="btnFontUp" title="Aumentar tamaño de texto">A+</button>
+  <button class="btn" type="button" id="btnTheme" title="Cambiar modo claro/oscuro">☀ Claro</button>
+  <button class="btn" type="button" id="btnPrint" title="Imprimir o guardar como PDF">🖨 PDF</button>
+</header>
+
+<!-- ================= PESTAÑAS ================= -->
+<nav class="tabs" id="tabs" aria-label="Secciones del tutorial">
+  <button class="tab active" type="button" data-tab="p-inicio">INICIO</button>
+  <button class="tab" type="button" data-tab="p-conceptos">CONCEPTOS</button>
+  <button class="tab" type="button" data-tab="p-procedimiento">PROCEDIMIENTO</button>
+  <button class="tab" type="button" data-tab="p-prompts">PROMPTS</button>
+  <button class="tab" type="button" data-tab="p-practica">PRÁCTICA</button>
+  <button class="tab" type="button" data-tab="p-errores">ERRORES</button>
+  <button class="tab" type="button" data-tab="p-resumen">RESUMEN</button>
+  <button class="tab" type="button" data-tab="p-fuentes">FUENTES</button>
+  <button class="tab" type="button" data-tab="p-creditos">CRÉDITOS</button>
+</nav>
+
+<main>
+
+<!-- ============================================================
+     PANEL: INICIO
+     ============================================================ -->
+<section class="panel active" id="p-inicio">
+  <h1 class="hero-title">Negocio de Agentes de IA</h1>
+  <p class="hero-sub">De cero a consultor de alto valor: construye, empaqueta, vende e implementa agentes de IA que resuelven problemas reales de negocio.</p>
+
+  <div class="hero-svg-mount" data-svg-hero="true" role="img"
+       aria-label="Esquema animado: un cliente escribe por chat, un agente de IA procesa la información y se generan resultados completados."></div>
+  <p class="svg-caption">El recorrido completo: <strong>cliente → agente de IA → resultado</strong>. El agente escucha, razona y ejecuta acciones.</p>
+
+  <div class="card accent">
+    <h3>¿Qué vas a aprender?</h3>
+    <p>A construir un negocio real alrededor de los agentes de inteligencia artificial: entender qué son, cómo se diferencian de un chatbot barato, cómo se cobran tarifas profesionales (de <strong>1.000 a 12.000 USD</strong> por proyecto), qué arquitectura técnica usar y cómo entregar el servicio en <strong>15 días</strong>.</p>
+  </div>
+
+  <h2>¿Para qué sirve este tutorial?</h2>
+  <p>Sirve para dejar de vender “bots de WhatsApp por 200 dólares” y empezar a vender <strong>soluciones a cuellos de botella operativos</strong> de empresas con volumen. El tutorial no asume ningún conocimiento técnico ni comercial previo.</p>
+
+  <h2>¿Qué necesitas antes de empezar?</h2>
+  <ul>
+    <li><strong>Nada técnico obligatorio.</strong> El material está explicado desde cero.</li>
+    <li>Un cuaderno o documento para anotar ideas de clientes y procesos.</li>
+    <li>Ganas de leer con calma: cada capítulo construye sobre el anterior.</li>
+    <li>Opcional: acceso a alguna herramienta de IA (ChatGPT, Claude, etc.) para practicar los prompts que verás.</li>
+  </ul>
+
+  <h2>Objetivos del tutorial</h2>
+  <div class="grid two">
+    <div class="card">
+      <h3>Objetivo 1 — Entender</h3>
+      <p>Diferenciar un chatbot de reglas fijas de un agente de IA capaz de razonar y ejecutar acciones.</p>
+    </div>
+    <div class="card">
+      <h3>Objetivo 2 — Posicionar</h3>
+      <p>Dejar de competir por precio y estructurar ofertas con la Ecuación de Valor.</p>
+    </div>
+    <div class="card">
+      <h3>Objetivo 3 — Construir</h3>
+      <p>Montar un stack técnico simple: modelo de lenguaje + orquestación + base de datos + canal.</p>
+    </div>
+    <div class="card">
+      <h3>Objetivo 4 — Vender y entregar</h3>
+      <p>Atraer clientes con contenido, cerrar en dos etapas y entregar en 15 días.</p>
+    </div>
+  </div>
+
+  <h2>Cómo utilizar este tutorial</h2>
+  <ol>
+    <li><strong>Usa las pestañas superiores.</strong> Cada pestaña es una parte del recorrido: conceptos, procedimiento, prompts, práctica, errores, resumen, fuentes y créditos.</li>
+    <li><strong>Busca lo que necesites</strong> con el buscador de la barra superior. Resalta las coincidencias y salta al panel correspondiente.</li>
+    <li><strong>Ajusta el tamaño del texto</strong> con los botones A− y A+ si te resulta más cómodo.</li>
+    <li><strong>Cambia a modo claro</strong> con el botón ☀ si vas a leer de día o quieres imprimir con menos tinta.</li>
+    <li><strong>Marca la checklist</strong> de la pestaña PRÁCTICA: tu progreso se guarda solo en este navegador.</li>
+    <li><strong>Guarda el PDF</strong> con el botón 🖨 PDF para estudiar sin conexión.</li>
+  </ol>
+
+  <div class="tip">
+    <strong>Consejo de uso:</strong> si es tu primera lectura, ve en orden: INICIO → CONCEPTOS → PROCEDIMIENTO → PROMPTS → PRÁCTICA → ERRORES → RESUMEN. Si ya conoces el tema, salta directo a PROMPTS y usa el buscador.
+  </div>
+</section>
+
+<!-- ============================================================
+     PANEL: CONCEPTOS
+     ============================================================ -->
+<section class="panel" id="p-conceptos">
+  <h1 class="hero-title">Conceptos fundamentales</h1>
+  <p class="hero-sub">Antes de vender, hay que entender qué se vende. Aquí está la base de todo el negocio.</p>
+
+  <h2>1. ¿Qué es un Agente de IA y para qué sirve?</h2>
+  <p>Un <strong>Agente de Inteligencia Artificial</strong> es un programa avanzado diseñado para actuar como un <strong>empleado digital autónomo</strong>. A diferencia de un sistema tradicional que solo responde preguntas fijas, un agente de IA puede:</p>
+  <ul>
+    <li>comprender el contexto de una conversación;</li>
+    <li>razonar sobre la intención del usuario;</li>
+    <li>ejecutar herramientas externas para completar tareas de principio a fin.</li>
+  </ul>
+
+  <div class="card">
+    <h3>Analogía: el folleto y el vendedor experto</h3>
+    <p>Imagina la diferencia entre un folleto impreso y un vendedor experto:</p>
+    <ul>
+      <li>El <strong>folleto</strong> solo muestra la información que tiene grabada.</li>
+      <li>El <strong>vendedor</strong> escucha al cliente, entiende sus necesidades, busca en el inventario, calcula presupuestos y gestiona el pago.</li>
+    </ul>
+    <p>Un agente de IA cumple la función de ese vendedor experto dentro de los canales digitales de una empresa (WhatsApp, correo electrónico o la plataforma interna de la compañía).</p>
+  </div>
+
+  <h2>2. Chatbot tradicional vs. Agente de IA</h2>
+  <p>Para no cometer los errores habituales del mercado, es indispensable entender por qué los chatbots antiguos causaban frustración y por qué los agentes de IA generan resultados económicos tangibles.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Característica</th>
+        <th>Chatbot tradicional (reglas fijas)</th>
+        <th>Agente de Inteligencia Artificial</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Mecanismo de respuesta</strong></td>
+        <td>Menús rígidos y botones (“Marque 1, 2 o 3”).</td>
+        <td>Comprensión del lenguaje natural en texto y audio.</td>
+      </tr>
+      <tr>
+        <td><strong>Comprensión de contexto</strong></td>
+        <td>Falla si el cliente escribe con faltas o envía audios.</td>
+        <td>Interpreta notas de voz, intenciones implícitas y contextos complejos.</td>
+      </tr>
+      <tr>
+        <td><strong>Capacidad de acción</strong></td>
+        <td>Solo muestra enlaces o textos preconfigurados.</td>
+        <td>Ejecuta acciones: consulta inventarios, genera links de pago y coordina con el equipo.</td>
+      </tr>
+      <tr>
+        <td><strong>Atención al cliente</strong></td>
+        <td>Deriva a un humano ante cualquier consulta fuera de guion.</td>
+        <td>Resuelve la consulta directamente o califica al cliente antes de derivarlo.</td>
+      </tr>
+      <tr>
+        <td><strong>Percepción del usuario</strong></td>
+        <td>Frustrante y robótica.</td>
+        <td>Eficiente, fluida y equivalente a un asistente humano.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <strong>Observación importante:</strong> los chatbots antiguos alejaban a los clientes. Los agentes de IA convierten conversaciones informales en ventas y procesos completados de forma automática.
+  </div>
+
+  <h2>3. ¿Por qué es vital aprender este negocio hoy?</h2>
+  <ol>
+    <li><strong>Eficiencia operativa urgente:</strong> las empresas reciben miles de mensajes y consultas repetitivas al día. Cada minuto que un empleado humano pasa respondiendo “precios” o “horarios” es dinero perdido.</li>
+    <li><strong>Escasez de profesionales enfocados en valor:</strong> abundan las personas que saben programar herramientas simples, pero escasean los consultores que entienden cómo conectar la tecnología con la facturación de una empresa.</li>
+    <li><strong>Escalabilidad del modelo:</strong> una vez que aprendes a estructurar una solución para un sector (por ejemplo, logística o comercio), puedes replicar la misma arquitectura para decenas de clientes similares.</li>
+  </ol>
+
+  <h2>4. Casos prácticos y situaciones reales</h2>
+
+  <div class="card">
+    <h3>Caso práctico 1 — Comercio electrónico y atención al cliente</h3>
+    <p>Un cliente escribe por WhatsApp a las 2:00 AM preguntando si hay disponibilidad de un producto específico entre más de 1.000 referencias. El agente de IA:</p>
+    <ol>
+      <li>escucha la nota de voz del cliente;</li>
+      <li>busca en la base de datos de la empresa;</li>
+      <li>calcula el costo de envío según la ubicación;</li>
+      <li>genera un enlace de pago único;</li>
+      <li>confirma la recepción de la transferencia.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h3>Caso práctico 2 — Operaciones internas y reportes</h3>
+    <p>Un departamento administrativo tarda 15 días en consolidar facturas e informes. Un agente de IA procesa los documentos digitales, extrae la información en segundos y entrega un reporte consolidado sin errores de digitación, reduciendo el tiempo de proceso <strong>de 15 días a solo 1 día</strong>.</p>
+  </div>
+
+  <div class="card">
+    <h3>Analogía cotidiana</h3>
+    <p>Piensa en un asistente personal en una oficina física. Si le pides: <em>“Busca el expediente de López, confirma si pagó la cuota y envíale un recibo”</em>, el asistente sabe qué cajón abrir, qué sistema consultar y cómo redactar el mensaje. Un agente de IA hace exactamente eso mismo, pero a velocidad digital y atendiendo a cientos de clientes simultáneamente.</p>
+  </div>
+
+  <h2>5. El error de los 200 dólares</h2>
+  <p>Uno de los errores más comunes cometidos por principiantes es intentar vender agentes de WhatsApp por precios bajos (100 o 200 USD) a pequeños negocios locales (peluquerías, restaurantes de barrio) extraídos de listas automatizadas.</p>
+
+  <h4>¿Por qué falla este enfoque?</h4>
+  <ol>
+    <li><strong>Falta de volumen e impacto:</strong> un pequeño negocio local que recibe 5 mensajes al día no percibirá un beneficio económico sustancial al automatizar su atención.</li>
+    <li><strong>Falta de compromiso del cliente:</strong> cuando un dueño de negocio paga 100 USD, no le da prioridad al proyecto. No envía la información requerida, no prueba el sistema y abandona su uso rápidamente.</li>
+    <li><strong>Alto costo de soporte:</strong> un cliente que paga poco suele exigir un soporte desproporcionado, volviendo el negocio inviable para el consultor.</li>
+    <li><strong>Falsa amenaza de los cambios de plataforma:</strong> cuando Meta o WhatsApp actualizan sus herramientas o lanzan funciones gratuitas, los revendedores de bots baratos se asustan creyendo que “se acabó el negocio”. En realidad, la tecnología de base es solo el canal; lo que el cliente paga es la solución a sus cuellos de botella operativos.</li>
+  </ol>
+
+  <div class="warn">
+    <strong>Consejo de experto:</strong> no vendas herramientas baratas a clientes sin volumen. Enfócate en empresas medianas donde la automatización elimine cuellos de botella reales y genere retornos significativos.
+  </div>
+
+  <h2>6. Cualificación de clientes: enfocarse en el volumen operativo</h2>
+  <p>Para cobrar tarifas profesionales (entre <strong>1.000 y 12.000 USD por proyecto</strong>), debes cualificar estrictamente a tus clientes antes de presentar cualquier propuesta.</p>
+
+  <div class="step"><span class="num">PASO 1</span><strong>Evalúa el volumen diario de interacciones o transacciones.</strong> La empresa debe tener un flujo constante de clientes o tareas administrativas pesadas.</div>
+  <div class="step"><span class="num">PASO 2</span><strong>Identifica el costo del cuello de botella.</strong> Pregunta al cliente cuánto tiempo o dinero pierde actualmente por demoras en sus procesos.</div>
+  <div class="step"><span class="num">PASO 3</span><strong>Confirma el compromiso del equipo directivo.</strong> Debe facilitar los accesos y la información necesaria durante la implementación.</div>
+
+  <h2>7. La Ecuación de Valor aplicada a la IA</h2>
+  <p>Para estructurar ofertas altamente atractivas sin recurrir a descuentos ni competir por precio, se utiliza la Ecuación de Valor desarrollada por Alex Hormozi:</p>
+
+  <div class="card accent">
+    <p style="font-size:1.05rem;text-align:center;margin:.2rem 0">
+      <strong>Valor = (Resultado soñado × Probabilidad percibida de lograrlo) ÷ (Tiempo de espera × Esfuerzo y sacrificio)</strong>
+    </p>
+  </div>
+
+  <p>Motivo de cada componente y cómo optimizarlo:</p>
+  <ol>
+    <li><strong>Aumentar el Resultado Soñado:</strong> promete la resolución completa del problema operativo (por ejemplo, reducir el tiempo de generación de reportes administrativos de 15 días a 1 día).</li>
+    <li><strong>Aumentar la Probabilidad Percibida de Éxito:</strong> muestra casos de estudio reales, demostraciones funcionales y procesos estructurados para generar confianza absoluta.</li>
+    <li><strong>Disminuir el Tiempo de Espera:</strong> diseña integraciones ágiles que muestren resultados utilizables en cuestión de días o semanas, no de meses.</li>
+    <li><strong>Minimizar el Esfuerzo y Sacrificio del Cliente:</strong> hazte cargo de la complejidad técnica. El cliente solo debe asistir a llamadas breves de alineación y proveer sus credenciales.</li>
+  </ol>
+
+  <h2>8. Ejemplos correctos e incorrectos al presentar la oferta</h2>
+
+  <div class="grid two">
+    <div class="card">
+      <p><span class="badge err">INCORRECTO</span></p>
+      <p>“Te vendo un agente de WhatsApp con conexión a PostgreSQL y vectorización de datos por 150 USD.”</p>
+      <p><strong>Motivo del fallo:</strong> centrado en la tecnología, precio bajo, el cliente no entiende el valor.</p>
+    </div>
+    <div class="card">
+      <p><span class="badge ok">CORRECTO</span></p>
+      <p>“Implementamos una solución que garantiza que ningún cliente potencial que escriba a tu empresa quede sin respuesta, filtrando a los compradores calificados y reduciendo la carga de tu equipo comercial en un 70%.”</p>
+      <p><strong>Motivo del éxito:</strong> centrado en el resultado de negocio, libre de jerga técnica innecesaria.</p>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>Resumen de conceptos:</strong> el precio de tu servicio no depende del código que escribes, sino del valor del problema que resuelves. Al dirigir tus soluciones a empresas con volumen y estructurar tu propuesta mediante la Ecuación de Valor, eliminas la competencia por precio.
+  </div>
+</section>
+
+<!-- ============================================================
+     PANEL: PROCEDIMIENTO
+     ============================================================ -->
+<section class="panel" id="p-procedimiento">
+  <h1 class="hero-title">Procedimiento paso a paso</h1>
+  <p class="hero-sub">Arquitectura técnica, oferta comercial, captación de clientes y entrega del servicio en 15 días.</p>
+
+  <h2>1. El stack técnico moderno</h2>
+  <p>No necesitas aprender decenas de lenguajes ni acumular herramientas complejas. La arquitectura recomendada se basa en cuatro pilares:</p>
+
+  <div class="grid two">
+    <div class="card">
+      <h3>1. Modelos de lenguaje</h3>
+      <p>Claude Code / OpenAI / Codex. Se encargan del razonamiento lógico, la interpretación de lenguaje natural y la toma de decisiones.</p>
+    </div>
+    <div class="card">
+      <h3>2. Orquestación y workflows</h3>
+      <p>n8n / Python. Conectan las distintas aplicaciones de la empresa (bases de datos, CRM, correo) con el modelo de IA.</p>
+    </div>
+    <div class="card">
+      <h3>3. Servidores y bases de datos</h3>
+      <p>PostgreSQL / nube. Almacenan el conocimiento del negocio y los historiales de conversación de forma segura.</p>
+    </div>
+    <div class="card">
+      <h3>4. Canales de comunicación</h3>
+      <p>APIs de WhatsApp / Meta. Permiten la interacción directa con el cliente final.</p>
+    </div>
+  </div>
+
+  <div class="warn">
+    <strong>Observación importante:</strong> evita la trampa de probar cada herramienta de moda que aparece en redes sociales. Mantén tu pila tecnológica simple, robusta y fácil de mantener.
+  </div>
+
+  <h2>2. Lección histórica: evitar la sobreingeniería inicial</h2>
+  <p>En los inicios del mercado de IA era habitual dedicar 3 meses enteros a desarrollar demostraciones complejas sin haber validado si el cliente realmente las necesitaba (como ocurrió históricamente en proyectos presentados a marcas multinacionales como Nike). La lección clave para cualquier consultor es <strong>construir soluciones modulares y rápidas</strong>, probando la utilidad directa antes de agregar capas complejas de software.</p>
+
+  <h2>3. Paso a paso para estructurar el agente de IA</h2>
+
+  <div class="step">
+    <span class="num">PASO 1</span><strong>Definir el alcance exacto de la tarea.</strong>
+    <p>Documenta en texto plano qué información debe manejar el agente y qué límites no debe cruzar jamás.</p>
+    <p><em>Resultado esperado:</em> un documento de una página con entradas permitidas y prohibidas.</p>
+  </div>
+
+  <div class="step">
+    <span class="num">PASO 2</span><strong>Recopilar y limpiar la base de conocimiento.</strong>
+    <p>Organiza preguntas frecuentes, listas de precios y catálogos en archivos claros y actualizados.</p>
+    <p><em>Resultado esperado:</em> un conjunto de archivos sin duplicados ni información contradictoria.</p>
+  </div>
+
+  <div class="step">
+    <span class="num">PASO 3</span><strong>Redactar las instrucciones del sistema (System Prompt).</strong>
+    <p>Configura el rol, las reglas de conducta y el tono de comunicación del agente.</p>
+    <p><em>Resultado esperado:</em> un prompt de sistema versionado y guardado.</p>
+  </div>
+
+  <div class="step">
+    <span class="num">PASO 4</span><strong>Conectar las herramientas de acción (Tools).</strong>
+    <p>Configura las llamadas a la base de datos o API para que el agente pueda consultar stock o enviar correos.</p>
+    <p><em>Resultado esperado:</em> el agente ejecuta al menos una acción real de principio a fin.</p>
+  </div>
+
+  <div class="step">
+    <span class="num">PASO 5</span><strong>Realizar pruebas intensivas de estrés.</strong>
+    <p>Simula conversaciones complejas, audios con ruido y preguntas capciosas para ajustar el comportamiento antes de la salida a producción.</p>
+    <p><em>Resultado esperado:</em> una lista de fallos corregidos y un agente que responde con seguridad.</p>
+  </div>
+
+  <div class="tip">
+    <strong>Si algo sale mal:</strong> vuelve al Paso 1. El 90% de los comportamientos raros de un agente provienen de un alcance mal definido o de una base de conocimiento sucia, no del modelo de lenguaje.
+  </div>
+
+  <h2>4. Comunicación de la oferta: de la jerga técnica al lenguaje corporativo</h2>
+  <p>El cliente empresarial no compra tecnología; compra la solución a un dolor operativo. La forma en que comunicas tu propuesta determina directamente cuánto puedes cobrar.</p>
+
+  <div class="grid two">
+    <div class="card">
+      <p><span class="badge err">LENGUAJE TÉCNICO</span></p>
+      <p>“Configuramos un flujo en n8n conectado a la API de OpenAI con agentes vectoriales en LangChain.”</p>
+    </div>
+    <div class="card">
+      <p><span class="badge ok">LENGUAJE DE NEGOCIO</span></p>
+      <p>“Automatizamos la cualificación de tus clientes potenciales para que tu equipo comercial solo atienda llamadas con personas listas para comprar.”</p>
+    </div>
+  </div>
+
+  <h2>5. Estrategia de atracción de clientes (Inbound Marketing)</h2>
+  <p>En lugar de realizar cientos de llamadas en frío con baja tasa de conversión (“pasar 7 días sin comer en plataformas de freelance”), la estrategia más efectiva consiste en construir canales de atracción orgánica y pautada:</p>
+
+  <ol>
+    <li><strong>Canal de YouTube B2B (educación y demostración):</strong> graba videos mostrando casos reales de automatización, explicando cómo resolviste problemas específicos de empresas reales. Esto genera confianza inmediata y posiciona tu autoridad.</li>
+    <li><strong>Anuncios directos en Meta Ads:</strong> configura campañas dirigidas a dueños de negocios e ingenieros de procesos, ofreciendo una sesión de diagnóstico operativo gratuita.</li>
+    <li><strong>Llamadas de venta en dos etapas:</strong>
+      <ul>
+        <li><em>Etapa 1 — Llamada de descubrimiento:</em> 15 a 20 minutos para analizar si la empresa califica y tiene un volumen suficiente.</li>
+        <li><em>Etapa 2 — Llamada de cierre:</em> presentación del plan de trabajo personalizado, costos y tiempos de ejecución.</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h2>6. Entrega del servicio (Fulfillment) y retención</h2>
+  <p>Cerrar una venta es solo el comienzo del negocio. La rentabilidad real proviene de la retención a largo plazo y las recomendaciones de clientes satisfechos.</p>
+  <p>La entrega del servicio consiste en cumplir rigurosamente lo prometido en la llamada de cierre. Enfocarte al 100% en el éxito del cliente durante el primer mes garantiza renovaciones y nuevos contratos de consultoría.</p>
+
+  <h3>Hoja de ruta de implementación en 15 días</h3>
+
+  <div class="step">
+    <span class="num">DÍAS 1–3</span><strong>Alineación y accesos.</strong>
+    <p>Creación del canal de comunicación con el cliente, recopilación de documentación y obtención de credenciales API.</p>
+  </div>
+  <div class="step">
+    <span class="num">DÍAS 4–8</span><strong>Desarrollo y parametrización.</strong>
+    <p>Construcción de los flujos de trabajo en n8n/Python y redacción del prompt de sistema.</p>
+  </div>
+  <div class="step">
+    <span class="num">DÍAS 9–12</span><strong>Pruebas en entorno de staging.</strong>
+    <p>Ejecución de pruebas con datos simulados y revisión conjunta con el equipo del cliente.</p>
+  </div>
+  <div class="step">
+    <span class="num">DÍAS 13–15</span><strong>Despliegue y capacitación.</strong>
+    <p>Puesta en producción, entrega del manual de usuario y sesión de capacitación breve al personal.</p>
+  </div>
+
+  <h3>Errores frecuentes en la entrega y cómo evitarlos</h3>
+  <div class="grid two">
+    <div class="card">
+      <p><span class="badge err">ERROR 1</span></p>
+      <p><strong>Prometer automatización total al 100%.</strong></p>
+      <p><em>Solución:</em> deja claro que los casos complejos siempre tendrán un mecanismo de derivación fluida a un operador humano.</p>
+    </div>
+    <div class="card">
+      <p><span class="badge err">ERROR 2</span></p>
+      <p><strong>No limitar el alcance del proyecto (Scope Creep).</strong></p>
+      <p><em>Solución:</em> detalla explícitamente en el contrato qué tareas realiza el agente y cuáles quedan fuera de la fase inicial.</p>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>Resumen del procedimiento:</strong> la excelencia técnica no proviene de la sobreingeniería, sino de la claridad de las instrucciones y la estabilidad de las integraciones. Un agente bien parametrizado resuelve problemas complejos de forma transparente para el usuario.
+  </div>
+</section>
+
+<!-- ============================================================
+     PANEL: PROMPTS
+     ============================================================ -->
+<section class="panel" id="p-prompts">
+  <h1 class="hero-title">Prompts listos para usar</h1>
+  <p class="hero-sub">Tres prompts en castellano, diseñados para estructurar, vender e implementar tu negocio de agentes de IA. Cópialos, adáptalos y úsalos en el mundo real.</p>
+
+  <div class="card accent">
+    <h3>Cómo usar esta pestaña</h3>
+    <p>Cada prompt tiene tres partes: el <strong>texto literal</strong> (listo para copiar), su <strong>utilidad</strong> (para qué sirve) y su <strong>aplicación práctica en el mundo real</strong> (cómo se usa paso a paso). Los campos entre corchetes se reemplazan por datos concretos de tu cliente.</p>
+  </div>
+
+  <!-- PROMPT 1 -->
+  <h2>1. Prompt de Diagnóstico Operativo de Clientes</h2>
+  <p>Se usa antes de la primera reunión con un potencial cliente para estimar dónde pierde tiempo y dinero.</p>
+
+  <div class="copy-block">
+    <pre>Actúa como un Consultor Sénior en Optimización de Procesos con IA.
+Analiza la siguiente descripción de la empresa [INSERTAR DESCRIPCIÓN DE LA EMPRESA Y SUS PROCESOS].
+
+Identifica:
+1. Los 3 cuellos de botella operativos más costosos en tiempo y dinero.
+2. Las áreas donde un agente de IA generaría el mayor impacto económico.
+3. Una estimación razonable del tiempo ahorrado si se automatizan las respuestas repetitivas y la gestión de datos.</pre>
+  </div>
+
+  <div class="card">
+    <h4>¿Para qué sirve?</h4>
+    <p>Permite realizar un <strong>análisis preliminar de la empresa cliente</strong> antes de una reunión de ventas. Identifica los procesos manuales donde la empresa pierde más tiempo y dinero, permitiendo estimar el retorno de inversión (ROI) antes de presentar una propuesta.</p>
+    <h4>¿Cómo se usa en la vida real?</h4>
+    <ol>
+      <li>Abres un modelo de lenguaje (como ChatGPT, Claude o Gemini).</li>
+      <li>Reemplazas <code>[INSERTAR DESCRIPCIÓN...]</code> con datos extraídos del sitio web del cliente, sus redes sociales o información obtenida en una primera toma de contacto.</li>
+      <li>Con el informe generado, preparas una reunión comercial enfocada estrictamente en el <strong>ahorro de tiempo y dinero</strong>, evitando tecnicismos que no le interesan al cliente.</li>
+    </ol>
+  </div>
+
+  <!-- PROMPT 2 -->
+  <h2>2. System Prompt para el Agente Comercial de IA</h2>
+  <p>Es la instrucción primaria que define la personalidad, las reglas y el flujo de atención del agente que atenderá al cliente final.</p>
+
+  <div class="copy-block">
+    <pre># ROL Y OBJETIVO
+Eres el Asistente Digital Oficial de [NOMBRE DE LA EMPRESA]. Tu objetivo es atender a los clientes con cortesía, responder sus dudas sobre nuestros productos/servicios y calificar si están listos para realizar una compra o agendar una cita.
+
+# REGLAS DE CONDUCTA
+1. Responde SIEMPRE de forma clara, concisa y profesional.
+2. Utiliza la base de conocimiento provista para responder sobre precios, características y horarios.
+3. Si el usuario envía una consulta que NO está en la base de conocimiento, responde cordialmente que consultarás con un especialista humano. NUNCA inventes información.
+4. Mantén tus respuestas en un rango de 2 a 4 oraciones como máximo para facilitar la lectura en entornos móviles.
+
+# HERRAMIENTAS DISPONIBLES
+- [Consultar_Inventario]: Utiliza esta función cuando el cliente solicite disponibilidad de un producto.
+- [Generar_Link_Pago]: Utiliza esta función cuando el cliente confirme explícitamente su intención de compra.
+
+# FLUJO DE ATENCIÓN
+Paso 1: Saluda al cliente y pregunta cómo puedes ayudarle hoy.
+Paso 2: Responde sus dudas específicas usando la base de datos.
+Paso 3: Si detectas interés de compra, solicita los datos de contacto necesarios y genera la opción de pago o agenda.</pre>
+  </div>
+
+  <div class="card">
+    <h4>¿Para qué sirve?</h4>
+    <p>Es la <strong>instrucción primaria o System Prompt</strong> que define la personalidad, las reglas éticas, los límites de comportamiento y la secuencia de atención del agente de IA. A diferencia de un chatbot antiguo con botones rígidos, este prompt permite al agente interpretar lenguaje natural, procesar audios y ejecutar acciones dinámicas.</p>
+    <h4>¿Cómo se usa en la vida real?</h4>
+    <ol>
+      <li>Se ingresa en la configuración de <em>System Instructions</em> de la plataforma de orquestación (como n8n, OpenAI Assistants API, Claude Code o Make).</li>
+      <li>Reemplazas <code>[NOMBRE DE LA EMPRESA]</code> y conectas las herramientas (<code>[Consultar_Inventario]</code>, <code>[Generar_Link_Pago]</code>) a las APIs y bases de datos reales del cliente (ej. PostgreSQL).</li>
+      <li>Al desplegarse en canales como WhatsApp o la web, el agente gestiona consultas, verifica stock y envía enlaces de pago de forma autónoma.</li>
+    </ol>
+  </div>
+
+  <!-- PROMPT 3 -->
+  <h2>3. Prompt para el Guion de la Llamada de Descubrimiento B2B</h2>
+  <p>Se usa antes de la llamada inicial con un potencial cliente para tener preparadas las preguntas correctas y filtrar rápido.</p>
+
+  <div class="copy-block">
+    <pre>Actúa como un Director de Ventas B2B. Diseña un guion de preguntas clave para una llamada de descubrimiento de 15 minutos con el dueño de una empresa.
+
+Las preguntas deben evaluar:
+1. ¿Cuál es el proceso manual que más tiempo consume en su equipo actualmente?
+2. ¿Cuántas consultas o transacciones procesan al mes?
+3. ¿Qué ocurre actualmente cuando un cliente escribe fuera del horario laboral?
+4. ¿Cuál sería el impacto económico si redujeran ese tiempo de respuesta a cero?</pre>
+  </div>
+
+  <div class="card">
+    <h4>¿Para qué sirve?</h4>
+    <p>Genera la estructura de preguntas estratégicas para la <strong>llamada de descubrimiento (fase 1 del proceso de ventas)</strong>. Sirve para filtrar a clientes que realmente manejan volumen operativo y descartar pequeños negocios que no se beneficiarían de una automatización de alto valor.</p>
+    <h4>¿Cómo se usa en la vida real?</h4>
+    <ol>
+      <li>Lo ejecutas en tu asistente de IA antes de iniciar reuniones con potenciales clientes corporativos.</li>
+      <li>Utilizas las preguntas resultantes durante los primeros 15 a 20 minutos de la llamada comercial para lograr que el propio cliente cuantifique cuánto dinero o tiempo está perdiendo actualmente.</li>
+      <li>Con esa información, pasas a la <strong>segunda llamada (de cierre)</strong>, presentando una propuesta basada en la Ecuación de Valor para justificar tarifas profesionales.</li>
+    </ol>
+  </div>
+
+  <h2>Consejos para adaptar los prompts</h2>
+  <div class="grid two">
+    <div class="card">
+      <h3>Personaliza por sector</h3>
+      <p>Ajusta los prompts a inmobiliarias, e-commerce, logística, clínicas o estudios contables. Cambia el vocabulario y las herramientas por las del sector.</p>
+    </div>
+    <div class="card">
+      <h3>Versiona cada prompt</h3>
+      <p>Guarda cada versión del System Prompt con fecha y nombre de cliente. Cuando algo falle en producción, podrás volver a la versión anterior en segundos.</p>
+    </div>
+    <div class="card">
+      <h3>Mide el resultado</h3>
+      <p>Después de cada uso, anota si el prompt generó lo esperado. Si no, reescribe el rol o los límites. Un prompt sin iteración es un prompt sin valor.</p>
+    </div>
+    <div class="card">
+      <h3>Evita inventar información</h3>
+      <p>Prohíbe explícitamente al agente inventar datos. Siempre define una vía de derivación a un humano para las consultas fuera de la base de conocimiento.</p>
+    </div>
+  </div>
+
+  <div class="tip">
+    <strong>Si quieres un prompt específico:</strong> ¿necesitas uno adaptado a un sector concreto (inmobiliarias, e-commerce o logística) o prefieres profundizar en la estructura de la llamada de cierre? Puedes usar el prompt de diagnóstico como base y ajustar el rol y las preguntas.
+  </div>
+</section>
+
+<!-- ============================================================
+     PANEL: PRÁCTICA
+     ============================================================ -->
+<section class="panel" id="p-practica">
+  <h1 class="hero-title">Práctica y ejercicios</h1>
+  <p class="hero-sub">Pon a prueba lo aprendido. Intenta resolver cada ejercicio antes de abrir la solución.</p>
+
+  <h2>Ejercicio 1 — Ajuste de mensaje comercial</h2>
+  <div class="card">
+    <p><strong>Consigna:</strong> transforma la siguiente frase técnica en una propuesta de valor enfocada en beneficios corporativos:</p>
+    <p><em>“Ofrezco un script en Python con integración a la API de WhatsApp y PostgreSQL para responder mensajes automáticamente.”</em></p>
+  </div>
+
+  <details>
+    <summary>Ver solución explicada</summary>
+    <p><strong>Solución:</strong> “Implementamos un sistema de atención inteligente que responde de forma inmediata las consultas de tus clientes las 24 horas, filtra a los compradores calificados y agiliza el trabajo de tu equipo de ventas.”</p>
+    <p><strong>Explicación:</strong> la solución elimina las referencias a herramientas y se enfoca en la disponibilidad, la cualificación y el ahorro de tiempo.</p>
+  </details>
+
+  <h2>Ejercicio 2 — Diagnóstico de cualificación</h2>
+  <div class="card">
+    <p><strong>Consigna:</strong> un restaurante pequeño que recibe 3 mensajes al día quiere comprarte un agente de IA por 100 USD. ¿Debes aceptar el proyecto? Justifica tu respuesta.</p>
+  </div>
+
+  <details>
+    <summary>Ver solución explicada</summary>
+    <p><strong>Solución:</strong> no debes aceptar el proyecto.</p>
+    <p><strong>Explicación:</strong> el volumen de 3 mensajes diarios no justifica el costo operativo ni genera un retorno de inversión real para el cliente. Además, la tarifa de 100 USD genera un alto costo de soporte sin rentabilidad para tu negocio.</p>
+  </details>
+
+  <h2>Ejercicio 3 — Redacta tu propio System Prompt</h2>
+  <div class="card">
+    <p><strong>Consigna:</strong> elige un negocio real que conozcas (una tienda, una clínica, un estudio contable) y redacta su System Prompt usando la estructura de cuatro bloques: ROL Y OBJETIVO, REGLAS DE CONDUCTA, HERRAMIENTAS DISPONIBLES y FLUJO DE ATENCIÓN.</p>
+    <p>Antes de escribirlo, responde por escrito estas tres preguntas:</p>
+    <ol>
+      <li>¿Cuál es el proceso manual que más tiempo consume en ese negocio?</li>
+      <li>¿Cuántas consultas o transacciones procesa al mes?</li>
+      <li>¿Qué ocurre hoy cuando un cliente escribe fuera del horario laboral?</li>
+    </ol>
+  </div>
+
+  <details>
+    <summary>Ver criterios de corrección</summary>
+    <ul>
+      <li>El <strong>rol</strong> nombra la empresa y define un objetivo medible.</li>
+      <li>Las <strong>reglas</strong> incluyen una prohibición explícita de inventar información.</li>
+      <li>Las <strong>herramientas</strong> están nombradas y cada una tiene una condición de uso clara.</li>
+      <li>El <strong>flujo</strong> tiene pasos numerados y termina en una acción concreta (pago, agenda o derivación).</li>
+      <li>Las respuestas están limitadas en extensión para lectura móvil.</li>
+    </ul>
+  </details>
+
+  <h2>Ejercicio 4 — Calcula el valor de tu oferta</h2>
+  <div class="card">
+    <p><strong>Consigna:</strong> aplica la Ecuación de Valor a un caso concreto. Escribe en una frase cada uno de los cuatro factores:</p>
+    <ol>
+      <li>Resultado soñado (¿qué problema desaparece?).</li>
+      <li>Probabilidad percibida de lograrlo (¿qué prueba muestras?).</li>
+      <li>Tiempo de espera (¿en cuántos días hay resultado?).</li>
+      <li>Esfuerzo y sacrificio del cliente (¿qué tiene que hacer él?).</li>
+    </ol>
+  </div>
+
+  <details>
+    <summary>Ver ejemplo de solución</summary>
+    <p><strong>Resultado soñado:</strong> “Ningún cliente potencial se queda sin respuesta, ni siquiera a las 2 de la mañana.”</p>
+    <p><strong>Probabilidad percibida:</strong> “Te muestro una demo funcionando con tus propios datos antes de firmar.”</p>
+    <p><strong>Tiempo de espera:</strong> “En 15 días el sistema está en producción.”</p>
+    <p><strong>Esfuerzo del cliente:</strong> “Solo necesito dos llamadas de 20 minutos y las credenciales de tus sistemas.”</p>
+  </details>
+
+  <h2>Checklist de aprendizaje</h2>
+  <p>Marca cada punto cuando lo domines. Tu progreso se guarda automáticamente en este navegador.</p>
+  <p id="checkProgress" class="meta-line"><strong>0 / 8</strong> completados</p>
+
+  <label class="check-item"><input type="checkbox" data-check="c1"><span>Puedo explicar con mis palabras la diferencia entre un chatbot de reglas fijas y un agente de IA.</span></label>
+  <label class="check-item"><input type="checkbox" data-check="c2"><span>Sé por qué no conviene vender agentes a 100–200 USD a negocios sin volumen.</span></label>
+  <label class="check-item"><input type="checkbox" data-check="c3"><span>Puedo aplicar la Ecuación de Valor a una oferta concreta en una frase por factor.</span></label>
+  <label class="check-item"><input type="checkbox" data-check="c4"><span>Conozco los cuatro pilares del stack técnico: modelo, orquestación, base de datos y canal.</span></label>
+  <label class="check-item"><input type="checkbox" data-check="c5"><span>He redactado un System Prompt completo con rol, reglas, herramientas y flujo.</span></label>
+  <label class="check-item"><input type="checkbox" data-check="c6"><span>Sé transformar una frase técnica en una propuesta de valor de negocio.</span></label>
+  <label class="check-item"><input type="checkbox" data-check="c7"><span>Tengo claro el cronograma de implementación de 15 días.</span></label>
+  <label class="check-item"><input type="checkbox" data-check="c8"><span>Conozco los errores fatales que nunca debo cometer y cómo evitarlos.</span></label>
+
+  <button class="btn" type="button" id="btnResetCheck" style="margin-top:.6rem">Reiniciar checklist</button>
+</section>
+
+<!-- ============================================================
+     PANEL: ERRORES
+     ============================================================ -->
+<section class="panel" id="p-errores">
+  <h1 class="hero-title">Errores que debes evitar</h1>
+  <p class="hero-sub">Lista de comprobación para no cometer errores fatales en tu negocio de agentes de IA.</p>
+
+  <div class="card accent">
+    <h3>Lista de comprobación rápida</h3>
+    <ul>
+      <li>No vender a negocios locales pequeños sin volumen ni presupuesto.</li>
+      <li>No usar jerga técnica inaccesible durante las llamadas de venta.</li>
+      <li>No prometer que la IA “lee la mente” o trabaja sin información clara del negocio.</li>
+      <li>No saturar el sistema con herramientas innecesarias o modas pasajeras.</li>
+      <li>No ignorar la etapa de pruebas intensivas antes de lanzar el agente a producción.</li>
+      <li>No descuidar la entrega del servicio por buscar únicamente ventas nuevas.</li>
+    </ul>
+  </div>
+
+  <h2>Tabla de errores, causas y soluciones</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Error</th>
+        <th>Causa real</th>
+        <th>Cómo corregirlo</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Vender agentes a 100–200 USD.</td>
+        <td>Miedo a cobrar y enfoque en la herramienta, no en el problema.</td>
+        <td>Cualifica por volumen operativo y cobra por el impacto, no por el código.</td>
+      </tr>
+      <tr>
+        <td>El cliente abandona el sistema.</td>
+        <td>Precio bajo = falta de compromiso del cliente con el proyecto.</td>
+        <td>Sube la tarifa y exige accesos y validación del equipo directivo.</td>
+      </tr>
+      <tr>
+        <td>Hablar de n8n, API o LangChain en la venta.</td>
+        <td>Comunicar desde el orgullo técnico en lugar del dolor del cliente.</td>
+        <td>Traduce todo a resultados: tiempo ahorrado, ventas recuperadas, carga reducida.</td>
+      </tr>
+      <tr>
+        <td>El agente inventa información.</td>
+        <td>Base de conocimiento sucia o incompleta y reglas de conducta ausentes.</td>
+        <td>Limpiar la base, prohibir explícitamente inventar y definir derivación a humano.</td>
+      </tr>
+      <tr>
+        <td>Soporte desproporcionado.</td>
+        <td>Cliente que paga poco y exige mucho.</td>
+        <td>Cualificar mejor y limitar por contrato el alcance de la fase inicial.</td>
+      </tr>
+      <tr>
+        <td>El agente falla en producción.</td>
+        <td>No se hicieron pruebas de estrés con datos y audios reales.</td>
+        <td>Simular conversaciones complejas, ruido y preguntas capciosas antes del despliegue.</td>
+      </tr>
+      <tr>
+        <td>Meses de desarrollo sin cobrar.</td>
+        <td>Sobreingeniería inicial y falta de validación temprana.</td>
+        <td>Construir modular y rápido; validar utilidad antes de agregar capas.</td>
+      </tr>
+      <tr>
+        <td>Solo buscar ventas nuevas.</td>
+        <td>Descuidar la entrega (fulfillment) y la retención.</td>
+        <td>Enfocarte al 100% en el éxito del cliente durante el primer mes.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="warn">
+    <strong>Regla de oro:</strong> si una promesa no se puede demostrar con una prueba funcional o un caso real, no la hagas.
+  </div>
+</section>
+
+<!-- ============================================================
+     PANEL: RESUMEN
+     ============================================================ -->
+<section class="panel" id="p-resumen">
+  <h1 class="hero-title">Resumen, glosario y FAQ</h1>
+  <p class="hero-sub">Todo lo esencial en un solo lugar para repasar antes de actuar.</p>
+
+  <h2>Resumen consolidado de lo aprendido</h2>
+  <ol>
+    <li>Comprendiste la diferencia fundamental entre chatbots rígidos y agentes de IA con capacidad de razonamiento y ejecución.</li>
+    <li>Aprendiste a evitar proyectos de 200 dólares enfocándote en empresas con volumen y aplicando la Ecuación de Valor de Alex Hormozi.</li>
+    <li>Conociste la arquitectura técnica basada en Claude Code, Codex y servidores sencillos, evitando la sobreingeniería.</li>
+    <li>Aprendiste a atraer clientes calificados mediante YouTube B2B, anuncios dirigidos y llamadas de venta en dos etapas.</li>
+    <li>Descubriste cómo ejecutar proyectos en 15 días garantizando la máxima satisfacción y retención del cliente.</li>
+    <li>Dispones de tres prompts en castellano listos para usar: diagnóstico operativo, System Prompt comercial y guion de llamada de descubrimiento.</li>
+  </ol>
+
+  <h2>Conceptos clave</h2>
+  <table>
+    <thead>
+      <tr><th>Concepto</th><th>Definición</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Agente de IA</strong></td>
+        <td>Empleado digital que combina razonamiento de lenguaje natural con capacidad de ejecutar herramientas externas.</td>
+      </tr>
+      <tr>
+        <td><strong>Ecuación de Valor</strong></td>
+        <td>Marco matemático para maximizar el valor percibido de una oferta aumentando el resultado y la probabilidad, y reduciendo el tiempo y esfuerzo del cliente.</td>
+      </tr>
+      <tr>
+        <td><strong>System Prompt</strong></td>
+        <td>Conjunto de instrucciones primarias que definen la personalidad, reglas y límites de un agente de IA.</td>
+      </tr>
+      <tr>
+        <td><strong>Inbound Marketing B2B</strong></td>
+        <td>Estrategia para atraer clientes corporativos calificados a través de contenido educativo y demostraciones prácticas.</td>
+      </tr>
+      <tr>
+        <td><strong>Fulfillment</strong></td>
+        <td>Proceso de implementación técnica y acompañamiento que garantiza que el cliente obtenga el resultado prometido.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Glosario de términos técnicos</h2>
+  <table>
+    <thead>
+      <tr><th>Término</th><th>Significado</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>API</strong> (Interfaz de Programación de Aplicaciones)</td><td>Puente de comunicación que permite a dos sistemas o aplicaciones intercambiar datos entre sí.</td></tr>
+      <tr><td><strong>Chatbot</strong></td><td>Programa informático que responde preguntas basándose exclusivamente en reglas preseteadas y botones fijos.</td></tr>
+      <tr><td><strong>Claude Code / Codex</strong></td><td>Modelos de inteligencia artificial de última generación optimizados para el razonamiento, la programación y la ejecución de tareas lógicas.</td></tr>
+      <tr><td><strong>CRM</strong> (Gestión de Relaciones con Clientes)</td><td>Software utilizado por las empresas para administrar sus interacciones, ventas y contactos comercialmente.</td></tr>
+      <tr><td><strong>n8n</strong></td><td>Herramienta de automatización de código abierto que permite conectar distintas aplicaciones y servicios mediante flujos visuales.</td></tr>
+      <tr><td><strong>PostgreSQL / PGVector</strong></td><td>Base de datos relacional y vectorial que permite almacenar y buscar información de forma eficiente para modelos de IA.</td></tr>
+      <tr><td><strong>System Prompt</strong></td><td>Instrucciones fundamentales que se le proporcionan a un modelo de lenguaje para determinar cómo debe comportarse.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Preguntas frecuentes (FAQ)</h2>
+
+  <details>
+    <summary>1. ¿Cuánto debo cobrar por un proyecto completo de IA?</summary>
+    <p>Los proyectos estándar de automatización suelen situarse entre los 1.000 y 1.200 USD para soluciones enfocadas. Para transformaciones completas que abarcan múltiples departamentos (por ejemplo, automatizando 4 áreas operativas de una empresa), las propuestas pueden alcanzar los 12.000 USD según la escala y el impacto.</p>
+  </details>
+
+  <details>
+    <summary>2. ¿Qué pasa si Meta o WhatsApp cambian sus condiciones o liberan herramientas gratuitas?</summary>
+    <p>No afecta tu negocio si estás enfocado en resolver problemas operativos de fondo. Las herramientas gratuitas de las plataformas atienden necesidades básicas de pequeños usuarios; las empresas con volumen seguirán necesitando integraciones personalizadas, bases de datos complejas y flujos de trabajo a medida.</p>
+  </details>
+
+  <details>
+    <summary>3. ¿Es preferible cerrar proyectos muy costosos o proyectos medianos bien ejecutados?</summary>
+    <p>Es financieramente más saludable y sostenible ejecutar 5 proyectos de 2.500 a 3.000 USD con resultados perfectos que cerrar un único proyecto de 5.000 USD con una ejecución deficiente. Los clientes satisfechos generan recomendaciones constantes y contratos recurrentes.</p>
+  </details>
+
+  <h2>Recomendaciones para seguir aprendiendo</h2>
+  <ol>
+    <li><strong>Practica la construcción de flujos simples:</strong> crea automatizaciones personales en n8n utilizando herramientas básicas antes de ofrecerlas a clientes.</li>
+    <li><strong>Estudia procesos de negocio reales:</strong> familiarízate con la terminología de ventas, logística y atención al cliente para entender sus dolores operativos.</li>
+    <li><strong>Analiza casos de estudio del canal de YouTube oficial:</strong> revisa demostraciones paso a paso de implementaciones reales en empresas.</li>
+  </ol>
+</section>
+
+<!-- ============================================================
+     PANEL: FUENTES
+     ============================================================ -->
+<section class="panel" id="p-fuentes">
+  <h1 class="hero-title">Fuentes y referencias</h1>
+  <p class="hero-sub">Material base utilizado para elaborar este tutorial.</p>
+
+  <div class="card">
+    <h3>Fuente oficial</h3>
+    <p>Este tutorial fue elaborado sintetizando los principios metodológicos, análisis de mercado y experiencias operativas compartidas en la siguiente fuente oficial:</p>
+    <ul>
+      <li><strong>Nombre del video de YouTube:</strong> No Vendas Agentes de IA de WhatsApp, Hacé Esto</li>
+      <li><strong>Autor / Canal:</strong> Facundo Corengia</li>
+    </ul>
+  </div>
+
+  <h3>Enlace URL del video</h3>
+  <p>Copia el enlace con el botón y pégalo en tu navegador:</p>
+
+  <div class="copy-block">
+    <pre>https://youtube.com/watch?v=EI1DlLg0YhA&amp;is=c2f4u7pl35M9TZqP</pre>
+  </div>
+
+  <div class="note">
+    <strong>Nota:</strong> este tutorial reorganiza y explica el contenido de la fuente para facilitar el aprendizaje. No se han inventado funciones, datos ni procedimientos que no estén respaldados por el material original.
+  </div>
+</section>
+
+<!-- ============================================================
+     PANEL: CRÉDITOS
+     ============================================================ -->
+<section class="panel" id="p-creditos">
+  <h1 class="hero-title">Créditos</h1>
+
+  <!-- SVG ARRIBA DEL TODO, PRIMERA PANTALLA -->
+  <div class="hero-svg-mount" data-svg-hero="true" role="img"
+       aria-label="Esquema animado: un cliente escribe por chat, un agente de IA procesa la información y se generan resultados completados."></div>
+  <p class="svg-caption">El mismo esquema que abre el tutorial: <strong>cliente → agente de IA → resultado</strong>.</p>
+
+  <div class="card">
+    <p class="author-name">Rubén Sbarsky</p>
+    <p class="author-role">Autor del tutorial</p>
+    <p class="meta-line"><strong>Fecha y hora de creación:</strong> 06/10/2026 — 14:32:07</p>
+    <p class="meta-line"><strong>Versión del archivo:</strong> V001</p>
+    <p class="meta-line"><strong>Formato:</strong> documento HTML único, sin dependencias externas.</p>
+  </div>
+
+  <div class="card">
+    <h3>Sobre este tutorial</h3>
+    <p>Tutorial interactivo de una sola página construido a partir del material <em>“Negocio de Agentes de IA”</em>. Organizado en pestañas: INICIO, CONCEPTOS, PROCEDIMIENTO, PROMPTS, PRÁCTICA, ERRORES, RESUMEN, FUENTES y CRÉDITOS.</p>
+    <p>Incluye buscador interno, control de tamaño de texto, modo claro/oscuro, checklist de aprendizaje con guardado local, botones de copiado y exportación a PDF mediante la impresión del navegador.</p>
+  </div>
+
+  <div class="card">
+    <h3>Novedades de esta versión</h3>
+    <ul>
+      <li><strong>V001</strong> — Versión inicial del tutorial interactivo. Se incorpora el SVG animado compartido entre INICIO y CRÉDITOS, generado desde una única plantilla con identificadores únicos por copia.</li>
+      <li>Se añade red de seguridad de montaje y plan alternativo en imagen para garantizar que el SVG siempre se vea.</li>
+      <li>Se ajusta la hoja de impresión para que el SVG de CRÉDITOS aparezca siempre en el PDF.</li>
+      <li>Se añade la pestaña <strong>PROMPTS</strong> con los tres prompts en castellano (diagnóstico operativo, System Prompt comercial y guion de llamada de descubrimiento), cada uno con su texto literal copiable, su utilidad y su aplicación práctica en el mundo real.</li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  Tutorial interactivo · Negocio de Agentes de IA · Rubén Sbarsky · V001
+</footer>
+
+<button class="to-top" type="button" id="toTop" aria-label="Volver arriba">↑</button>
+<div class="print-notice" id="printNotice" hidden></div>
+
+<!-- ============================================================
+     SVG FUENTE (ÚNICO). Se elimina del DOM tras extraer la plantilla.
+     ============================================================ -->
+<svg id="svgHeroSource" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 260"
+     style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+  <defs>
+    <linearGradient id="gBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a"></stop>
+      <stop offset="100%" stop-color="#0a0e1a"></stop>
+    </linearGradient>
+    <linearGradient id="gAcc" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2563eb"></stop>
+      <stop offset="100%" stop-color="#22d3ee"></stop>
+    </linearGradient>
+    <radialGradient id="gGlow">
+      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.55"></stop>
+      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0"></stop>
+    </radialGradient>
+    <filter id="fGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="b"></feGaussianBlur>
+      <feMerge>
+        <feMergeNode in="b"></feMergeNode>
+        <feMergeNode in="SourceGraphic"></feMergeNode>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <g id="svgHero">
+    <!-- fondo -->
+    <rect x="0" y="0" width="820" height="260" rx="18" fill="url(#gBg)" stroke="#1e293b" stroke-width="1"></rect>
+
+    <!-- etiquetas -->
+    <text x="119" y="30" text-anchor="middle" fill="#64748b" font-family="sans-serif" font-size="11" letter-spacing="2">CLIENTE</text>
+    <text x="410" y="30" text-anchor="middle" fill="#64748b" font-family="sans-serif" font-size="11" letter-spacing="2">AGENTE IA</text>
+    <text x="681" y="30" text-anchor="middle" fill="#64748b" font-family="sans-serif" font-size="11" letter-spacing="2">RESULTADO</text>
+
+    <!-- panel de chat -->
+    <rect x="24" y="44" width="190" height="172" rx="12" fill="#0f172a" stroke="#1e3a5f" stroke-width="1.5"></rect>
+    <line x1="24" y1="74" x2="214" y2="74" stroke="#1e3a5f" stroke-width="1.5"></line>
+    <circle cx="42" cy="59" r="4" fill="#22c55e">
+      <animate attributeName="opacity" values="1;0.25;1" dur="1.8s" repeatCount="indefinite"></animate>
+    </circle>
+    <rect x="54" y="56" width="60" height="7" rx="3.5" fill="#1e3a5f"></rect>
+
+    <!-- burbujas de conversación -->
+    <rect x="38" y="88" width="112" height="16" rx="8" fill="#1e3a5f">
+      <animate attributeName="opacity" values="0;1" dur="0.5s" begin="0.3s" fill="freeze"></animate>
+    </rect>
+    <rect x="66" y="112" width="134" height="16" rx="8" fill="#1e3a5f">
+      <animate attributeName="opacity" values="0;1" dur="0.5s" begin="1.0s" fill="freeze"></animate>
+    </rect>
+    <rect x="38" y="136" width="96" height="16" rx="8" fill="#1e3a5f">
+      <animate attributeName="opacity" values="0;1" dur="0.5s" begin="1.7s" fill="freeze"></animate>
+    </rect>
+    <rect x="70" y="166" width="130" height="16" rx="8" fill="url(#gAcc)">
+      <animate attributeName="opacity" values="0;1" dur="0.5s" begin="2.5s" fill="freeze"></animate>
+      <animate attributeName="width" values="0;130" dur="0.6s" begin="2.5s" fill="freeze"></animate>
+    </rect>
+
+    <!-- conectores con flujo de datos -->
+    <line x1="214" y1="130" x2="344" y2="130" stroke="#2563eb" stroke-width="2"
+          stroke-dasharray="7 9" stroke-linecap="round">
+      <animate attributeName="stroke-dashoffset" from="0" to="-32" dur="1s" repeatCount="indefinite"></animate>
+    </line>
+    <line x1="476" y1="130" x2="566" y2="130" stroke="#22d3ee" stroke-width="2"
+          stroke-dasharray="7 9" stroke-linecap="round">
+      <animate attributeName="stroke-dashoffset" from="0" to="-32" dur="1s" repeatCount="indefinite"></animate>
+    </line>
+
+    <!-- núcleo del agente -->
+    <circle cx="410" cy="130" r="66" fill="none" stroke="url(#gAcc)" stroke-width="2"
+            stroke-dasharray="12 14" opacity="0.65">
+      <animateTransform attributeName="transform" type="rotate" from="0 410 130" to="360 410 130"
+                        dur="10s" repeatCount="indefinite"></animateTransform>
+    </circle>
+    <circle cx="410" cy="130" r="52" fill="url(#gGlow)">
+      <animate attributeName="r" values="46;58;46" dur="3s" repeatCount="indefinite"></animate>
+    </circle>
+    <circle cx="410" cy="130" r="40" fill="url(#gAcc)" filter="url(#fGlow)">
+      <animate attributeName="r" values="39;41;39" dur="2.4s" repeatCount="indefinite"></animate>
+    </circle>
+
+    <!-- red neuronal interna -->
+    <g stroke="#ffffff" stroke-opacity="0.55" stroke-width="1.5">
+      <line x1="396" y1="116" x2="424" y2="116"></line>
+      <line x1="396" y1="144" x2="424" y2="144"></line>
+      <line x1="396" y1="116" x2="396" y2="144"></line>
+      <line x1="424" y1="116" x2="424" y2="144"></line>
+      <line x1="396" y1="116" x2="424" y2="144"></line>
+      <line x1="424" y1="116" x2="396" y2="144"></line>
+    </g>
+    <g fill="#ffffff">
+      <circle cx="396" cy="116" r="4">
+        <animate attributeName="opacity" values="0.35;1;0.35" dur="1.8s" begin="0s" repeatCount="indefinite"></animate>
+      </circle>
+      <circle cx="424" cy="116" r="4">
+        <animate attributeName="opacity" values="0.35;1;0.35" dur="1.8s" begin="0.45s" repeatCount="indefinite"></animate>
+      </circle>
+      <circle cx="396" cy="144" r="4">
+        <animate attributeName="opacity" values="0.35;1;0.35" dur="1.8s" begin="0.9s" repeatCount="indefinite"></animate>
+      </circle>
+      <circle cx="424" cy="144" r="4">
+        <animate attributeName="opacity" values="0.35;1;0.35" dur="1.8s" begin="1.35s" repeatCount="indefinite"></animate>
+      </circle>
+    </g>
+
+    <!-- panel de resultados -->
+    <rect x="566" y="44" width="230" height="172" rx="12" fill="#0f172a" stroke="#1e3a5f" stroke-width="1.5"></rect>
+    <line x1="566" y1="196" x2="796" y2="196" stroke="#1e3a5f" stroke-width="1.5"></line>
+
+    <rect x="596" y="196" width="30" height="0" rx="4" fill="#1e3a5f">
+      <animate attributeName="height" from="0" to="44" dur="0.9s" begin="0.6s" fill="freeze"></animate>
+      <animate attributeName="y" from="196" to="152" dur="0.9s" begin="0.6s" fill="freeze"></animate>
+    </rect>
+    <rect x="646" y="196" width="30" height="0" rx="4" fill="#2563eb">
+      <animate attributeName="height" from="0" to="68" dur="0.9s" begin="0.9s" fill="freeze"></animate>
+      <animate attributeName="y" from="196" to="128" dur="0.9s" begin="0.9s" fill="freeze"></animate>
+    </rect>
+    <rect x="696" y="196" width="30" height="0" rx="4" fill="#2563eb">
+      <animate attributeName="height" from="0" to="92" dur="0.9s" begin="1.2s" fill="freeze"></animate>
+      <animate attributeName="y" from="196" to="104" dur="0.9s" begin="1.2s" fill="freeze"></animate>
+    </rect>
+    <rect x="746" y="196" width="30" height="0" rx="4" fill="url(#gAcc)">
+      <animate attributeName="height" from="0" to="112" dur="0.9s" begin="1.5s" fill="freeze"></animate>
+      <animate attributeName="y" from="196" to="84" dur="0.9s" begin="1.5s" fill="freeze"></animate>
+    </rect>
+
+    <text x="681" y="211" text-anchor="middle" fill="#64748b" font-family="sans-serif"
+          font-size="10" letter-spacing="1.5">TAREAS COMPLETADAS</text>
+
+    <!-- check de confirmación -->
+    <circle cx="756" cy="66" r="13" fill="none" stroke="#22c55e" stroke-width="2.5"
+            stroke-dasharray="82" stroke-dashoffset="82">
+      <animate attributeName="stroke-dashoffset" from="82" to="0" dur="0.8s" begin="3.2s" fill="freeze"></animate>
+    </circle>
+    <path d="M 749 66 L 754 71 L 763 61" fill="none" stroke="#22c55e" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="30" stroke-dashoffset="30">
+      <animate attributeName="stroke-dashoffset" from="30" to="0" dur="0.5s" begin="3.9s" fill="freeze"></animate>
+    </path>
+  </g>
+</svg>
+
+<script>
+/* ============================================================
+   1. SVG ANIMADO ÚNICO — PLANTILLA + MONTAJE CON innerHTML
+   ============================================================ */
+var seq = 0, TPL = null, imgMode = false;
+var PRINT_FRAME = 5; /* segundo del fotograma completo para el PDF */
+
+function template() {
+  if (TPL) return TPL;
+  var src = document.getElementById('svgHeroSource');
+  if (!src) return null;
+  var d = src.querySelector('defs').cloneNode(true);
+  var g = src.querySelector('#svgHero').cloneNode(true);
+  var inner = d.querySelector('#svgHero');
+  if (inner) inner.parentNode.removeChild(inner);
+  g.removeAttribute('id');
+  TPL = { defs: d.innerHTML, art: g.outerHTML };
+  if (src.parentNode) src.parentNode.removeChild(src); /* que no siga animando oculto */
+  return TPL;
+}
+
+function markup(uid) {
+  var t = template();
+  if (!t) return '';
+  var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 260" role="img" aria-hidden="true">'
+        + '<defs>' + t.defs + '</defs>' + t.art + '</svg>';
+  ['gBg', 'gAcc', 'gGlow', 'fGlow'].forEach(function (id) {
+    s = s.split('id="' + id + '"').join('id="' + id + '-' + uid + '"')
+         .split('url(#' + id + ')').join('url(#' + id + '-' + uid + ')');
+  });
+  return s;
+}
+
+function mountOne(m) {
+  m.textContent = '';
+  if (imgMode) {
+    var im = new Image();
+    im.alt = m.getAttribute('aria-label') || '';
+    im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(markup('i' + (++seq)));
+    m.appendChild(im);
+    return;
+  }
+  m.innerHTML = markup('h' + (++seq));
+  var svg = m.querySelector('svg');
+  if (!svg) return;
+  try { svg.setCurrentTime(0); svg.unpauseAnimations(); } catch (e) {}
+  var t0 = 0;
+  try { t0 = svg.getCurrentTime(); } catch (e) {}
+  setTimeout(function () {
+    if (document.hidden) return;
+    if (m.querySelector('svg') !== svg) return;
+    var visible = svg.getBoundingClientRect().height > 0;
+    var t1 = 0;
+    try { t1 = svg.getCurrentTime(); } catch (e) {}
+    if (visible && (t1 - t0) < 0.3) {
+      imgMode = true;
+      mountOne(m);
+    }
+  }, 1600);
+}
+
+function mountActive() {
+  var nodes = document.querySelectorAll('.panel.active [data-svg-hero]');
+  for (var i = 0; i < nodes.length; i++) mountOne(nodes[i]);
+}
+
+function mountAll() {
+  var nodes = document.querySelectorAll('[data-svg-hero]');
+  for (var i = 0; i < nodes.length; i++) {
+    if (!nodes[i].firstElementChild) mountOne(nodes[i]);
+  }
+  var svgs = document.querySelectorAll('[data-svg-hero] svg');
+  for (var j = 0; j < svgs.length; j++) {
+    try { svgs[j].pauseAnimations(); svgs[j].setCurrentTime(PRINT_FRAME); } catch (e) {}
+  }
+}
+
+function resumeAll() {
+  var svgs = document.querySelectorAll('[data-svg-hero] svg');
+  for (var j = 0; j < svgs.length; j++) {
+    try { svgs[j].unpauseAnimations(); } catch (e) {}
+  }
+}
+
+/* Red de seguridad: si el panel visible tiene el contenedor vacío, se remonta */
+setInterval(function () {
+  if (document.hidden) return;
+  var nodes = document.querySelectorAll('.panel.active [data-svg-hero]');
+  for (var i = 0; i < nodes.length; i++) {
+    if (!nodes[i].firstElementChild) mountOne(nodes[i]);
+  }
+}, 800);
+
+/* ============================================================
+   2. PESTAÑAS
+   ============================================================ */
+function activateTab(id) {
+  var panels = document.querySelectorAll('.panel');
+  var found = false;
+  for (var i = 0; i < panels.length; i++) {
+    if (panels[i].id === id) found = true;
+  }
+  if (!found) return;
+  for (var j = 0; j < panels.length; j++) {
+    panels[j].classList.toggle('active', panels[j].id === id);
+  }
+  var btns = document.querySelectorAll('.tab');
+  for (var k = 0; k < btns.length; k++) {
+    btns[k].classList.toggle('active', btns[k].getAttribute('data-tab') === id);
+  }
+  mountActive();
+  window.scrollTo(0, 0);
+  updateProgress();
+}
+
+document.getElementById('tabs').addEventListener('click', function (e) {
+  var btn = e.target.closest('.tab');
+  if (!btn) return;
+  activateTab(btn.getAttribute('data-tab'));
+});
+
+/* ============================================================
+   3. BUSCADOR
+   ============================================================ */
+var searchInput = document.getElementById('searchInput');
+var searchCount = document.getElementById('searchCount');
+var searchTimer = null;
+
+function clearHighlights() {
+  var marks = document.querySelectorAll('mark.search-hl');
+  for (var i = 0; i < marks.length; i++) {
+    var m = marks[i];
+    var parent = m.parentNode;
+    if (!parent) continue;
+    parent.replaceChild(document.createTextNode(m.textContent), m);
+    parent.normalize();
+  }
+}
+
+function doSearch(q) {
+  clearHighlights();
+  if (!q || q.length < 2) { searchCount.textContent = ''; return; }
+
+  var ql = q.toLowerCase();
+  var count = 0;
+  var firstPanel = null;
+  var panels = document.querySelectorAll('.panel');
+
+  for (var p = 0; p < panels.length; p++) {
+    var panel = panels[p];
+    var walker = document.createTreeWalker(panel, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (n) {
+        if (!n.nodeValue || !n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+        var par = n.parentNode;
+        if (!par) return NodeFilter.FILTER_REJECT;
+        var tag = par.nodeName;
+        if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'MARK') return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+
+    var nodes = [], n;
+    while ((n = walker.nextNode())) nodes.push(n);
+
+    for (var i = 0; i < nodes.length; i++) {
+      var node = nodes[i];
+      var txt = node.nodeValue;
+      var low = txt.toLowerCase();
+      var idx = low.indexOf(ql);
+      if (idx === -1) continue;
+
+      var frag = document.createDocumentFragment();
+      var last = 0;
+      while (idx !== -1) {
+        frag.appendChild(document.createTextNode(txt.slice(last, idx)));
+        var mk = document.createElement('mark');
+        mk.className = 'search-hl';
+        mk.textContent = txt.slice(idx, idx + q.length);
+        frag.appendChild(mk);
+        last = idx + q.length;
+        idx = low.indexOf(ql, last);
+        count++;
+      }
+      frag.appendChild(document.createTextNode(txt.slice(last)));
+      if (node.parentNode) node.parentNode.replaceChild(frag, node);
+    }
+
+    if (!firstPanel && panel.querySelector('mark.search-hl')) firstPanel = panel;
+  }
+
+  searchCount.textContent = count ? (count + (count === 1 ? ' coincidencia' : ' coincidencias')) : 'Sin resultados';
+
+  if (firstPanel) {
+    activateTab(firstPanel.id);
+    var first = firstPanel.querySelector('mark.search-hl');
+    if (first && first.scrollIntoView) {
+      first.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+  }
+}
+
+searchInput.addEventListener('input', function () {
+  clearTimeout(searchTimer);
+  var val = searchInput.value;
+  searchTimer = setTimeout(function () { doSearch(val); }, 260);
+});
+
+/* ============================================================
+   4. TAMAÑO DE TEXTO
+   ============================================================ */
+var FS_KEY = 'tut_agentes_ia_fs';
+var currentFs = parseInt(localStorage.getItem(FS_KEY) || '16', 10);
+if (isNaN(currentFs)) currentFs = 16;
+
+function applyFs(v) {
+  currentFs = Math.max(13, Math.min(22, v));
+  document.documentElement.style.fontSize = currentFs + 'px';
+  try { localStorage.setItem(FS_KEY, String(currentFs)); } catch (e) {}
+}
+applyFs(currentFs);
+
+document.getElementById('btnFontDown').addEventListener('click', function () { applyFs(currentFs - 1); });
+document.getElementById('btnFontUp').addEventListener('click', function () { applyFs(currentFs + 1); });
+
+/* ============================================================
+   5. MODO CLARO / OSCURO
+   ============================================================ */
+var THEME_KEY = 'tut_agentes_ia_theme';
+var btnTheme = document.getElementById('btnTheme');
+
+function applyTheme(mode) {
+  var light = (mode === 'light');
+  document.body.classList.toggle('light', light);
+  btnTheme.textContent = light ? '🌙 Oscuro' : '☀ Claro';
+  try { localStorage.setItem(THEME_KEY, mode); } catch (e) {}
+}
+
+applyTheme(localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark');
+
+btnTheme.addEventListener('click', function () {
+  applyTheme(document.body.classList.contains('light') ? 'dark' : 'light');
+});
+
+/* ============================================================
+   6. IMPRIMIR / GUARDAR COMO PDF
+   ============================================================ */
+var closedDetails = [];
+
+function openAllDetails() {
+  closedDetails = [];
+  var ds = document.querySelectorAll('details:not([open])');
+  for (var i = 0; i < ds.length; i++) {
+    closedDetails.push(ds[i]);
+    ds[i].open = true;
+  }
+}
+
+function restoreDetails() {
+  for (var i = 0; i < closedDetails.length; i++) {
+    if (closedDetails[i]) closedDetails[i].open = false;
+  }
+  closedDetails = [];
+}
+
+function preparePrint() {
+  clearHighlights();
+  openAllDetails();
+  mountAll();
+}
+
+function cleanupPrint() {
+  restoreDetails();
+  resumeAll();
+}
+
+var printNotice = document.getElementById('printNotice');
+var noticeTimer = null;
+
+function showPrintNotice(msg) {
+  printNotice.textContent = msg;
+  printNotice.hidden = false;
+  clearTimeout(noticeTimer);
+  noticeTimer = setTimeout(function () { printNotice.hidden = true; }, 9000);
+}
+
+window.addEventListener('beforeprint', preparePrint);
+window.addEventListener('afterprint', cleanupPrint);
+
+document.getElementById('btnPrint').addEventListener('click', function () {
+  preparePrint();
+  var ok = true;
+  try {
+    window.print();
+  } catch (e) {
+    ok = false;
+  }
+  if (window.self !== window.top) {
+    showPrintNotice('Si no se abre el diálogo de impresión: abre este archivo directamente en el navegador (no dentro de un visor) y pulsa Ctrl+P / Cmd+P.');
+  } else if (!ok) {
+    showPrintNotice('No se pudo abrir el diálogo de impresión. Pulsa Ctrl+P / Cmd+P manualmente.');
+  }
+  setTimeout(cleanupPrint, 1200);
+});
+
+/* ============================================================
+   7. VOLVER ARRIBA + BARRA DE PROGRESO
+   ============================================================ */
+var toTop = document.getElementById('toTop');
+var progressBar = document.getElementById('progressBar');
+
+function updateProgress() {
+  var h = document.documentElement.scrollHeight - window.innerHeight;
+  var pct = h > 0 ? (window.scrollY / h) * 100 : 0;
+  progressBar.style.width = Math.max(0, Math.min(100, pct)) + '%';
+  toTop.classList.toggle('show', window.scrollY > 400);
+}
+
+window.addEventListener('scroll', updateProgress, { passive: true });
+window.addEventListener('resize', updateProgress);
+toTop.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+
+/* ============================================================
+   8. COPIAR AL PORTAPAPELES
+   ============================================================ */
+function copyText(t, btn) {
+  function done() {
+    var old = btn.textContent;
+    btn.textContent = '¡COPIADO!';
+    btn.classList.add('copied');
+    setTimeout(function () {
+      btn.textContent = old;
+      btn.classList.remove('copied');
+    }, 1600);
+  }
+  function fallback() {
+    var ta = document.createElement('textarea');
+    ta.value = t;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.top = '-1000px';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(t).then(done).catch(fallback);
+  } else {
+    fallback();
+  }
+}
+
+(function initCopyButtons() {
+  var blocks = document.querySelectorAll('.copy-block');
+  for (var i = 0; i < blocks.length; i++) {
+    (function (w) {
+      var pre = w.querySelector('pre');
+      if (!pre) return;
+      var btn = document.createElement('button');
+      btn.className = 'copyBtn';
+      btn.type = 'button';
+      btn.textContent = 'COPIAR';
+      btn.addEventListener('click', function () {
+        copyText(pre.innerText || pre.textContent, btn);
+      });
+      w.insertBefore(btn, w.firstChild);
+    })(blocks[i]);
+  }
+})();
+
+/* ============================================================
+   9. CHECKLIST CON localStorage
+   ============================================================ */
+var CHECK_KEY = 'tut_agentes_ia_checks_v1';
+var checkBoxes = document.querySelectorAll('input[data-check]');
+var checkProgress = document.getElementById('checkProgress');
+
+function loadChecks() {
+  var data = {};
+  try { data = JSON.parse(localStorage.getItem(CHECK_KEY) || '{}') || {}; } catch (e) { data = {}; }
+  for (var i = 0; i < checkBoxes.length; i++) {
+    var cb = checkBoxes[i];
+    var key = cb.getAttribute('data-check');
+    cb.checked = !!data[key];
+    cb.closest('.check-item').classList.toggle('done', cb.checked);
+  }
+  updateCheckProgress();
+}
+
+function saveChecks() {
+  var data = {};
+  for (var i = 0; i < checkBoxes.length; i++) {
+    data[checkBoxes[i].getAttribute('data-check')] = checkBoxes[i].checked;
+  }
+  try { localStorage.setItem(CHECK_KEY, JSON.stringify(data)); } catch (e) {}
+}
+
+function updateCheckProgress() {
+  var total = checkBoxes.length;
+  var done = 0;
+  for (var i = 0; i < checkBoxes.length; i++) if (checkBoxes[i].checked) done++;
+  if (checkProgress) {
+    checkProgress.innerHTML = '<strong>' + done + ' / ' + total + '</strong> completados';
+  }
+}
+
+for (var ci = 0; ci < checkBoxes.length; ci++) {
+  checkBoxes[ci].addEventListener('change', function () {
+    this.closest('.check-item').classList.toggle('done', this.checked);
+    saveChecks();
+    updateCheckProgress();
+  });
+}
+
+var btnReset = document.getElementById('btnResetCheck');
+if (btnReset) {
+  btnReset.addEventListener('click', function () {
+    for (var i = 0; i < checkBoxes.length; i++) {
+      checkBoxes[i].checked = false;
+      checkBoxes[i].closest('.check-item').classList.remove('done');
+    }
+    saveChecks();
+    updateCheckProgress();
+  });
+}
+
+loadChecks();
+
+/* ============================================================
+   10. ARRANQUE
+   ============================================================ */
+(function boot() {
+  var hash = (window.location.hash || '').replace('#', '');
+  var target = document.getElementById(hash);
+  var panelId = (target && target.classList.contains('panel')) ? hash : 'p-inicio';
+
+  /* activar sin hacer scroll suave para no pelear con el hash */
+  var panels = document.querySelectorAll('.panel');
+  for (var j = 0; j < panels.length; j++) {
+    panels[j].classList.toggle('active', panels[j].id === panelId);
+  }
+  var btns = document.querySelectorAll('.tab');
+  for (var k = 0; k < btns.length; k++) {
+    btns[k].classList.toggle('active', btns[k].getAttribute('data-tab') === panelId);
+  }
+
+  mountActive();
+  updateProgress();
+  updateCheckProgress();
+
+  window.addEventListener('hashchange', function () {
+    var h = (window.location.hash || '').replace('#', '');
+    var t = document.getElementById(h);
+    if (t && t.classList.contains('panel')) activateTab(h);
+  });
+})();
+</script>
+</body>
+</html>
